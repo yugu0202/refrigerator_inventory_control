@@ -22,9 +22,8 @@ const BarcodeReaderPage = () => {
     });
   };
 
-  const stopScanner = () => {
-    codeReader.stop();
-  };
+const stopScanner = () => {
+};
 
   return (
     <div>
