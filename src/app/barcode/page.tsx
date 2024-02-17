@@ -20,9 +20,6 @@ const BarcodeReaderPage = () => {
         console.log('Barcode result: ', result.getText());
         setResult(result.getText());
       }
-      if (error) {
-        console.error('Barcode error: ', error);
-      }
     });
   };
 
