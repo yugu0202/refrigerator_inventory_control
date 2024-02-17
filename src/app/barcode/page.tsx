@@ -36,7 +36,7 @@ const BarcodeReaderPage = () => {
       devices = devices.filter((device) => device.kind === 'videoinput');
       const deviceOptions = devices.map((device) => {
         return(
-          <option value={device.deviceId}>{device.label}</option>
+          <option value={device.deviceId} key={device.label}>{device.label}</option>
         );
       });
       setDevices(deviceOptions);
