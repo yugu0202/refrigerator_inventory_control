@@ -6,8 +6,8 @@ import { BrowserMultiFormatReader } from '@zxing/browser';
 const BarcodeReaderPage = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReader = new BrowserMultiFormatReader();
-  const parser = new DOMParser();
   const [result, setResult] = useState('');
+  const [resultText, setResultText] = useState('商品情報が見つかりませんでした');
   const [devices, setDevices] = useState<React.JSX.Element[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string | undefined >(undefined);
 
@@ -20,14 +20,9 @@ const BarcodeReaderPage = () => {
       if (code_result && code_result.getText() != result) {
         console.log('Barcode result: ', code_result.getText());
 
-        fetch(`https://jancode.xyz/code/?q=${code_result.getText()}`).then((response) => {
-          response.text().then((text) => {
-            const doc = parser.parseFromString(text, 'text/html');
-            const result = doc.querySelector('p.description')?.textContent;
-            setResult(result || '商品情報が見つかりませんでした');
-          });
-        });
-        
+        setResult(code_result.getText());
+
+        fetch(`/api/barcode?jancode=${code_result.getText()}`)
       }
     });
   };
@@ -65,7 +60,7 @@ const BarcodeReaderPage = () => {
       <div style={{ width: '300px', margin: 'auto' }}>
         <video ref={videoRef} />
       </div>
-      <h2>スキャン結果: {result}</h2>
+      <h2>スキャン結果: {resultText}</h2>
     </div>
   );
 };
