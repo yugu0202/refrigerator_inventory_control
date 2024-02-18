@@ -2,11 +2,13 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
+import { useRouter } from 'next/navigation';
 
 const BarcodeReaderPage = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReader = new BrowserMultiFormatReader();
-  const [result, setResult] = useState('');
+  const router = useRouter();
+
   const [resultText, setResultText] = useState('商品情報が見つかりませんでした');
   const [devices, setDevices] = useState<React.JSX.Element[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string | undefined >(undefined);
@@ -17,12 +19,11 @@ const BarcodeReaderPage = () => {
     console.log(selectedDevice);
 
     codeReader.decodeFromVideoDevice(selectedDevice, videoRef.current, (code_result, error) => {
-      if (code_result && code_result.getText() != result) {
-        console.log('Barcode result: ', code_result.getText());
-
-        setResult(code_result.getText());
-
-        fetch(`/api/barcode?jancode=${code_result.getText()}`)
+      if (code_result) {
+        fetch(`/api/jancode?code=${code_result.getText()}`).then((response) => response.json()).then((data) => {
+          setResultText(data.result);
+          router.push(`/barcode/${code_result.getText()}`);
+        });
       }
     });
   };
