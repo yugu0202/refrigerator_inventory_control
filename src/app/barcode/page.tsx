@@ -6,6 +6,7 @@ import { BrowserMultiFormatReader } from '@zxing/browser';
 const BarcodeReaderPage = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReader = new BrowserMultiFormatReader();
+  const parser = new DOMParser();
   const [result, setResult] = useState('');
   const [devices, setDevices] = useState<React.JSX.Element[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string | undefined >(undefined);
@@ -15,10 +16,18 @@ const BarcodeReaderPage = () => {
 
     console.log(selectedDevice);
 
-    codeReader.decodeFromVideoDevice(selectedDevice, videoRef.current, (result, error) => {
-      if (result) {
-        console.log('Barcode result: ', result.getText());
-        setResult(result.getText());
+    codeReader.decodeFromVideoDevice(selectedDevice, videoRef.current, (code_result, error) => {
+      if (code_result && code_result.getText() != result) {
+        console.log('Barcode result: ', code_result.getText());
+
+        fetch(`https://jancode.xyz/code/?q=${code_result.getText()}`).then((response) => {
+          response.text().then((text) => {
+            const doc = parser.parseFromString(text, 'text/html');
+            const result = doc.querySelector('p.description')?.textContent;
+            setResult(result || '商品情報が見つかりませんでした');
+          });
+        });
+        
       }
     });
   };
