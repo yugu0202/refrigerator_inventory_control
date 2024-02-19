@@ -2,14 +2,13 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
-import { useRouter } from 'next/navigation';
+import { useToast } from '@chakra-ui/react';
 
 const BarcodeReaderPage = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReader = new BrowserMultiFormatReader();
-  const router = useRouter();
+  const toast = useToast();
 
-  const [resultText, setResultText] = useState('商品情報が見つかりませんでした');
   const [devices, setDevices] = useState<React.JSX.Element[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string | undefined >(undefined);
 
@@ -21,8 +20,14 @@ const BarcodeReaderPage = () => {
     codeReader.decodeFromVideoDevice(selectedDevice, videoRef.current, (code_result, error) => {
       if (code_result) {
         fetch(`/api/jancode?code=${code_result.getText()}`).then((response) => response.json()).then((data) => {
-          setResultText(data.result);
-          router.push(`/barcode/${code_result.getText()}`);
+          toast({
+            title: 'スキャン結果',
+            description: data.name,
+            status: 'success',
+            position: 'top',
+            duration: 3000,
+            isClosable: true,
+          });
         });
       }
     });
@@ -61,7 +66,6 @@ const BarcodeReaderPage = () => {
       <div style={{ width: '300px', margin: 'auto' }}>
         <video ref={videoRef} />
       </div>
-      <h2>スキャン結果: {resultText}</h2>
     </div>
   );
 };
