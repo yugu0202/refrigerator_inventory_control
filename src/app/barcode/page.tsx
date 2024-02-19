@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
-import { useToast } from '@chakra-ui/react';
+import { ChakraProvider, useToast } from '@chakra-ui/react';
 
 const BarcodeReaderPage = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -20,12 +20,13 @@ const BarcodeReaderPage = () => {
     codeReader.decodeFromVideoDevice(selectedDevice, videoRef.current, (code_result, error) => {
       if (code_result) {
         fetch(`/api/jancode?code=${code_result.getText()}`).then((response) => response.json()).then((data) => {
+          console.log(data);
           toast({
-            title: 'スキャン結果',
+            title: '読み取り結果',
             description: data.name,
-            status: 'success',
+            status: 'info',
             position: 'top',
-            duration: 3000,
+            duration: 9000,
             isClosable: true,
           });
         });
@@ -54,19 +55,21 @@ const BarcodeReaderPage = () => {
   });
 
   return (
-    <div>
-      <h1>バーコードリーダー</h1>
+    <ChakraProvider>
       <div>
-        <button onClick={startScanner}>スキャン開始</button>
-        <button onClick={stopScanner}>スキャン停止</button>
-        <select onChange={handleDeviceChange}>
-          {devices}
-        </select>
+        <h1>バーコードリーダー</h1>
+        <div>
+          <button onClick={startScanner}>スキャン開始</button>
+          <button onClick={stopScanner}>スキャン停止</button>
+          <select onChange={handleDeviceChange}>
+            {devices}
+          </select>
+        </div>
+        <div style={{ width: '300px', margin: 'auto' }}>
+          <video ref={videoRef} />
+        </div>
       </div>
-      <div style={{ width: '300px', margin: 'auto' }}>
-        <video ref={videoRef} />
-      </div>
-    </div>
+    </ChakraProvider>
   );
 };
 

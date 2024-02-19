@@ -8,5 +8,5 @@ export async function GET(req: NextRequest) {
   const dom = new JSDOM(text);
   const resultText = dom.window.document.querySelector('p.description')?.textContent?.trim();
 
-  return NextResponse.json({result: resultText || 'No result'})
+  return NextResponse.json({name: resultText || ''})
 };
