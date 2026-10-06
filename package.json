@@ -1,36 +1,36 @@
 {
-  "name": "refrigerator_inventory_control",
+  "name": "refico",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build",
+    "check": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test src/domain/*.test.ts",
+    "preview": "vite preview --host 0.0.0.0",
+    "dev:worker": "pnpm build && wrangler dev",
+    "deploy": "pnpm build && wrangler deploy",
+    "format": "prettier --write ."
   },
   "dependencies": {
-    "@chakra-ui/next-js": "^2.2.0",
-    "@chakra-ui/react": "^2.8.2",
-    "@emotion/react": "^11.11.3",
-    "@emotion/styled": "^11.11.0",
-    "@zxing/browser": "^0.1.4",
-    "@zxing/library": "^0.20.0",
-    "framer-motion": "^11.0.5",
-    "jsdom": "^24.0.0",
-    "next": "14.1.0",
-    "react": "^18",
-    "react-dom": "^18"
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^9.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "@types/jsdom": "^21.1.6",
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "autoprefixer": "^10.0.1",
-    "eslint": "^8",
-    "eslint-config-next": "14.1.0",
-    "postcss": "^8",
-    "tailwindcss": "^3.3.0",
-    "typescript": "^5"
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "prettier": "^3.9.9",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "wrangler": "^4.0.0"
   }
 }

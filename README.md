@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Refico
 
-## Getting Started
+食材の在庫管理と、使った分に基づく1日の食費計算。
+旧 refrigerator_inventory_control を作り直したひな形です。
 
-First, run the development server:
+## 現在できること
+
+- 食材登録と商品固有単位の登録（白米: 1合 = 150g など）
+- 購入量・単位・購入価格・日付の記録
+- 在庫の残量・金額・購入履歴の確認
+- 食事への複数食材の使用記録と原価のプレビュー
+- 食事別・日別の食費表示
+- 空の状態からサンプルデータを追加
+
+React + MUI + TypeScript + Vite。Cloudflare Workers が静的アセットを配信します。
+データは localStorage に保存します。ブラウザ・端末間の共有はまだできません。
+D1、認証、記録の編集・削除、廃棄、バーコードは未実装です。
+
+## 開発
+
+Node.js 22.12以上（推奨24）、pnpm 11.25.0を使用します。
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+corepack enable
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:5173 で開きます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm check
+pnpm test
+pnpm build
+pnpm preview
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+DESIGN.md に画面のルール、AGENTS.md に実装のルールをまとめています。
+MUI のテーマは src/theme.ts で管理します。
 
-## Learn More
+## Cloudflare Workers
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm dev:worker
+pnpm deploy
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+deploy は自分のCloudflareアカウントへデプロイします。事前に `pnpm exec wrangler login` またはCIのCloudflare API Token設定が必要です。
+Worker名は wrangler.jsonc の name を変更してください。
+現在の構成ではD1などのresource IDは必要ありません。
+/api/health は疎通確認、その他の /api/* は404を返します。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+静的アセット設定: https://developers.cloudflare.com/workers/static-assets/
 
-## Deploy on Vercel
+## データと計算
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+src/domain/inventory.ts に換算・在庫・原価計算をまとめています。
+保存先をD1に変更する際にも、この層のロジックを共有する想定です。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+食材の基準単位は g / ml / 個。kg↔g、L↔mlは標準換算し、合・枚・パックなどは食材ごとに登録します。
+登録した単位は購入・食事の両方で選べます。係数を含む入力情報と正規化後の数量を記録します。
+基準単位の0.001刻みまで入力でき、内部は1/1000単位の整数です。
+
+購入は価格の異なるロットとして保持します。食事の保存時に、購入日順（同日なら登録順）に消費量を配分します。
+過去の食事を後から登録しても既存の配分は変更せず、未消費で食事日以前に購入したロットから使います。
+在庫不足なら全体の保存を中止します。
+
+円単位の原価は購入ロットの累積消費原価を四捨五入し、その差額を各使用に配分します。
+例: 3個100円を1個ずつ使うと33円・34円・33円。合計は購入価格と一致します。
+日別食費は食事の使用原価の合計で、購入日の支払額とは別です。
+日付は利用者のローカル日付として扱います。
+
+## 次の段階
+
+- D1: 商品、換算単位、購入、食事、使用、ロット配分を永続化
+- 利用者・家庭の境界と認証
+- 使用記録とロット配分を同一トランザクションで保存し、同時更新・重複送信を防止
+- 記録訂正・廃棄とデータのエクスポート
+
+D1接続時に価格・残量を商品マスタへまとめず、購入ロットと使用配分を保持します。
+秘密値はCloudflare Secrets、ローカルは .dev.vars に置いてコミットしないでください。
